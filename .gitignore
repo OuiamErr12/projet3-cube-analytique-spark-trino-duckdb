@@ -1,0 +1,17 @@
+# Environnements Python et caches
+.venv/
+venv/
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Fichiers générés
+data/*.parquet
+results/*
+!results/.gitkeep
+*.log
+
+# Réglages locaux IDE
+.vscode/
+.idea/
