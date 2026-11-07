@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import time
 from pathlib import Path
 
 import duckdb
@@ -33,22 +34,28 @@ def main() -> None:
     parser.add_argument("--output-dir", type=Path, default=ROOT / "results" / "duckdb")
     args = parser.parse_args()
 
+    timings = ["query,seconds"]
+    started = time.perf_counter()
     connection = duckdb.connect()
+    timings.append(f"startup,{time.perf_counter() - started:.3f}")
     try:
         for table in TABLES:
             path = args.data_dir / f"{table}.parquet"
             connection.execute(
                 f"CREATE VIEW {table} AS SELECT * FROM read_parquet({parquet_literal(path)})"
             )
-        for name in ("monthly_kpis", "cube"):
+        for name in ("monthly_kpis", "cube", "channel_kpis"):
             output_name = "cube_kpis" if name == "cube" else name
+            query_started = time.perf_counter()
             write_csv(
                 connection,
                 Path(__file__).resolve().parent / f"{name}.sql",
                 args.output_dir / f"{output_name}.csv",
             )
+            timings.append(f"{name},{time.perf_counter() - query_started:.3f}")
     finally:
         connection.close()
+    (args.output_dir / "timings.csv").write_text("\n".join(timings) + "\n", encoding="utf-8")
     print(f"Résultats DuckDB écrits dans {args.output_dir.resolve()}")
 
 

@@ -10,6 +10,26 @@
 4. Pour Trino, installez et démarrez Docker Desktop ; `docker compose version`
    doit fonctionner.
 
+## Environnement macOS
+
+Les mêmes étapes, avec les commandes du shell :
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+python scripts/generate_data.py --orders 50000 --seed 42
+python -m pytest -q
+python duckdb/run_analysis.py
+python spark_sql/run_analysis.py
+python scripts/compare_results.py
+```
+
+Java 17 doit être visible (`java -version`, `JAVA_HOME`). L'interface Trino
+est publiée sur le port hôte 8081. Depuis l'intérieur du conteneur, le CLI
+continue d'utiliser `http://localhost:8080`.
+
 Les versions Python et Java disponibles sur la machine peuvent différer.
 Cette configuration recommande Python 3.11/3.12, Java 17, PySpark 4.0.x,
 DuckDB 1.2+ (2.0 testé localement) et Trino 476. Les images du compose sont épinglées ; la disponibilité
@@ -25,6 +45,7 @@ python scripts\generate_data.py --orders 50000 --seed 42
 python -m pytest -q
 python duckdb\run_analysis.py
 python spark_sql\run_analysis.py
+python scripts\compare_results.py
 ```
 
 Le nombre de commandes et la graine sont modifiables. La graine reproduit les
@@ -44,15 +65,21 @@ entre différentes versions de PyArrow.
 docker compose exec -T trino trino --server http://localhost:8080 --file /project/trino/setup.sql
 docker compose exec -T trino trino --server http://localhost:8080 --catalog hive --schema sales --file /project/trino/analysis.sql
 docker compose exec -T trino trino --server http://localhost:8080 --catalog hive --schema sales --file /project/trino/cube.sql
+docker compose exec -T trino trino --server http://localhost:8080 --catalog hive --schema sales --file /project/trino/channel_kpis.sql
+python scripts\export_trino_results.py
+python scripts\compare_results.py
 ```
 
-MinIO fournit le stockage S3-compatible ; le service `hive-metastore` stocke
-les définitions des tables ; le connecteur Hive Trino lit les métadonnées et
-les objets Parquet. Un conteneur d'initialisation copie les fichiers locaux
+MinIO fournit le stockage S3-compatible. Le catalogue
+`trino/etc/catalog/hive.properties` utilise un metastore fichier dont le
+répertoire est `s3://project-data/trino-metastore/`. C'est ce catalogue qui
+enregistre les tables créées par `setup.sql`. Le service `hive-metastore` du
+Compose démarre un metastore Derby de démonstration ; le catalogue Trino ne
+s'y connecte pas. Un conteneur d'initialisation copie les fichiers locaux
 dans le bucket `project-data`. Les identifiants MinIO du compose sont des
 identifiants de démonstration locaux, à remplacer avant toute exposition hors
-du poste. Le metastore de démonstration utilise Derby et un volume Docker
-nommé ; il n'est pas destiné à la haute disponibilité.
+du poste. Ni le metastore fichier ni Derby ne sont destinés à la haute
+disponibilité.
 
 Pour arrêter les services sans effacer leur volume :
 
@@ -71,8 +98,12 @@ docker compose run --rm --no-deps minio-init
 
 ## Lecture des résultats et comparaison
 
-DuckDB et Spark écrivent deux CSV, `monthly_kpis.csv` et `cube_kpis.csv`,
-respectivement sous `results/duckdb/` et `results/spark/`. Les tests comparent
+DuckDB et Spark écrivent `monthly_kpis.csv`, `cube_kpis.csv`,
+`channel_kpis.csv` et `timings.csv`, respectivement sous `results/duckdb/`
+et `results/spark/`. `python scripts/compare_results.py` compare ces CSV
+ligne à ligne, sur les clés d'analyse. Il n'additionne pas les commandes
+distinctes. Trino est inclus seulement si `results/trino/` contient les trois
+CSV, produits par `scripts/export_trino_results.py`. Les tests comparent
 les agrégats de référence DuckDB et Spark sur un petit jeu synthétique et
 valident les clés. Trino est préparé et ses requêtes sont fournies, mais le
 test automatisé ne prétend pas lancer Docker ni certifier un service qui

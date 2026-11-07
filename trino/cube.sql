@@ -12,4 +12,4 @@ JOIN hive.sales.dim_region r ON f.region_id = r.region_id
 JOIN hive.sales.dim_product p ON f.product_id = p.product_id
 JOIN hive.sales.dim_channel c ON f.channel_id = c.channel_id
 GROUP BY CUBE(d.date_month, r.region_name, p.category)
-ORDER BY d.date_month, r.region_name, p.category
+ORDER BY d.date_month, r.region_name, p.category;

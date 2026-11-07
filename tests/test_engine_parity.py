@@ -11,7 +11,8 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 TABLES = ("fact_sales", "dim_date", "dim_region", "dim_product", "dim_channel")
-QUERIES = ("monthly_kpis", "cube")
+QUERIES = ("monthly_kpis", "cube", "channel_kpis")
+DIMENSION_COUNT = {"monthly_kpis": 3, "cube": 3, "channel_kpis": 4}
 
 
 def _sql_rows(connection, sql_path: Path):
@@ -26,10 +27,10 @@ def _register_duckdb(connection, data_dir: Path) -> None:
         )
 
 
-def _assert_same_results(expected, actual) -> None:
+def _assert_same_results(expected, actual, dimension_count: int) -> None:
     assert len(expected) == len(actual)
-    expected_by_dimensions = {row[:3]: row[3:] for row in expected}
-    actual_by_dimensions = {row[:3]: row[3:] for row in actual}
+    expected_by_dimensions = {row[:dimension_count]: row[dimension_count:] for row in expected}
+    actual_by_dimensions = {row[:dimension_count]: row[dimension_count:] for row in actual}
     assert expected_by_dimensions.keys() == actual_by_dimensions.keys()
     for dimensions, expected_metrics in expected_by_dimensions.items():
         actual_metrics = actual_by_dimensions[dimensions]
@@ -52,6 +53,7 @@ def test_duckdb_kpis_match_independent_total(parquet_data: Path) -> None:
         total = connection.execute(
             "SELECT SUM(sales_amount), COUNT(DISTINCT order_id) FROM fact_sales"
         ).fetchone()
+        channel = _sql_rows(connection, ROOT / "duckdb" / "channel_kpis.sql")
     finally:
         connection.close()
 
@@ -60,6 +62,9 @@ def test_duckdb_kpis_match_independent_total(parquet_data: Path) -> None:
     assert cube_total[4] == total[1] == 300
     assert float(cube_total[5]) == pytest.approx(float(total[0]) / 300, abs=1e-7)
     assert monthly
+    channel_revenue = sum((row[4] for row in channel), start=0)
+    assert float(channel_revenue) == pytest.approx(float(total[0]), abs=1e-8)
+    assert channel
 
 
 @pytest.mark.skipif(
@@ -87,7 +92,11 @@ def test_spark_and_duckdb_return_same_kpis(parquet_data: Path) -> None:
             spark_rows = spark.sql(
                 (ROOT / "spark_sql" / f"{query_name}.sql").read_text(encoding="utf-8")
             ).collect()
-            _assert_same_results(duck_rows, [tuple(row) for row in spark_rows])
+            _assert_same_results(
+                duck_rows,
+                [tuple(row) for row in spark_rows],
+                DIMENSION_COUNT[query_name],
+            )
     finally:
         spark.stop()
         duck.close()
