@@ -15,4 +15,4 @@ sans pouvoir lancer Spark ni Trino. Cette exécution couvre les trois moteurs.
 | `scripts/compare_results.py` | Bilan réussi pour les trois analyses |
 
 Les durées et le total général sont dans [COMPARAISON.md](COMPARAISON.md).
-Les CSV restent locaux et ne sont pas versionnés.
+Les CSV de cette exécution sont versionnés dans `results/`.

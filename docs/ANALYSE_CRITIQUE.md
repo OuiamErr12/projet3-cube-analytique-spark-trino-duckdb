@@ -60,8 +60,8 @@ ne sont pas une installation haute disponibilité. Le conteneur Hive est
 présent dans Compose ; le catalogue Trino utilisé pointe vers le métastore
 fichier sur MinIO, qui suffit à enregistrer les tables externes.
 
-Les CSV de `results/` ne sont pas versionnés. La preuve reproductible est la
-procédure, les tests, et le compte rendu de l'exécution réellement lancée.
+Les CSV de `results/` sont versionnés avec le compte rendu de l'exécution.
+La procédure et les tests permettent de les régénérer.
 
 ## Suite utile
 

@@ -13,7 +13,7 @@ spark_sql/            SQL Spark et lanceur PySpark
 duckdb/               SQL DuckDB et lanceur local
 trino/                Catalogue Hive, tables, SQL et scripts Docker
 tests/                Contrôles de qualité et parité des moteurs
-results/              Résultats CSV générés (non versionnés)
+results/              Résultats CSV des trois moteurs
 docs/                 Modèle, schéma, installation, comparaison, critique
 ```
 

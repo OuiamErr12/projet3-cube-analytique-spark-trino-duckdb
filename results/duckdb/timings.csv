@@ -1,0 +1,5 @@
+query,seconds
+startup,0.015
+monthly_kpis,0.022
+cube,0.088
+channel_kpis,0.023

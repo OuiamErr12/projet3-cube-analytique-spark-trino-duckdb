@@ -8,7 +8,9 @@ __pycache__/
 
 # Fichiers générés
 data/*.parquet
-results/*
+results/**
+!results/**/
+!results/**/*.csv
 !results/.gitkeep
 *.log
 
