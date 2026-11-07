@@ -7,7 +7,7 @@ Spark SQL, DuckDB et, via Docker, Trino. Le modèle en étoile comprend
 ## Architecture
 
 ```text
-data/                 Parquet générés (non versionnés)
+data/                 Parquet du jeu de ventes
 scripts/              Génération reproductible des données
 spark_sql/            SQL Spark et lanceur PySpark
 duckdb/               SQL DuckDB et lanceur local
