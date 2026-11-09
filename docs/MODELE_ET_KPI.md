@@ -51,12 +51,19 @@ contenir plusieurs produits.
 - **Panier moyen** : chiffre d'affaires du groupe / commandes distinctes du
   groupe ; NULL si le dénominateur est nul.
 - **Analyse principale** : mois, région et catégorie, avec jointures des quatre
-  dimensions.
+  dimensions. La jointure au canal ne change pas les montants : `channel_id`
+  est unique, elle vérifie seulement que la clé étrangère se résout.
+- **Canal de vente** : la même définition, avec `channel_name` en plus
+  (`channel_kpis.sql`). Le chiffre d'affaires se répartit entre les canaux
+  sans double compte, parce qu'une ligne de fait n'a qu'un canal. Les
+  commandes distinctes, elles, ne s'additionnent toujours pas entre
+  catégories.
 - **Cube** : agrégations à toutes les combinaisons de mois, région et
   catégorie, y compris le total général. Une dimension à NULL dans une ligne
-  du cube est omise par ce niveau d'agrégation. Les commandes et paniers
-  moyens ne s'additionnent pas entre catégories : une commande peut contenir
-  plusieurs catégories.
+  du cube est omise par ce niveau d'agrégation. Le canal reste hors du cube
+  pour garder les huit niveaux demandés par l'analyse principale. Les
+  commandes et paniers moyens ne s'additionnent pas entre catégories : une
+  commande peut contenir plusieurs catégories.
 
 Les scripts Spark, DuckDB et Trino utilisent cette même définition. Les
 comparaisons portent sur les valeurs, avec tolérance uniquement pour la

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import time
 from pathlib import Path
 
 from pyspark.sql import SparkSession
@@ -29,23 +30,30 @@ def main() -> None:
     args = parser.parse_args()
     data_dir = args.data_dir.resolve()
 
+    timings = ["query,seconds"]
+    started = time.perf_counter()
     spark = (
         SparkSession.builder.appName("Projet3CubeAnalytique")
         .master("local[*]")
+        .config("spark.ui.enabled", "false")
         .getOrCreate()
     )
+    timings.append(f"startup,{time.perf_counter() - started:.3f}")
     try:
         for table in ("fact_sales", *DIMENSIONS):
             spark.read.parquet(str(data_dir / f"{table}.parquet")).createOrReplaceTempView(table)
-        for name in ("monthly_kpis", "cube"):
+        for name in ("monthly_kpis", "cube", "channel_kpis"):
             output_name = "cube_kpis" if name == "cube" else name
             query_path = Path(__file__).resolve().parent / f"{name}.sql"
+            query_started = time.perf_counter()
             write_csv(
                 spark.sql(query_path.read_text(encoding="utf-8")),
                 args.output_dir / f"{output_name}.csv",
             )
+            timings.append(f"{name},{time.perf_counter() - query_started:.3f}")
     finally:
         spark.stop()
+    (args.output_dir / "timings.csv").write_text("\n".join(timings) + "\n", encoding="utf-8")
     print(f"Résultats Spark écrits dans {args.output_dir.resolve()}")
 
 

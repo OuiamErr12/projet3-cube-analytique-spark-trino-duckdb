@@ -14,4 +14,4 @@ JOIN hive.sales.dim_channel c ON f.channel_id = c.channel_id
 WHERE d.full_date >= DATE '2024-01-01'
   AND d.full_date < DATE '2026-01-01'
 GROUP BY d.date_month, r.region_name, p.category
-ORDER BY d.date_month, r.region_name, p.category
+ORDER BY d.date_month, r.region_name, p.category;

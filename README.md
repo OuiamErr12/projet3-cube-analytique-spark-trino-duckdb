@@ -14,7 +14,7 @@ duckdb/               SQL DuckDB et lanceur local
 trino/                Catalogue Hive, tables, SQL et scripts Docker
 tests/                Contrôles de qualité et parité des moteurs
 results/              Résultats CSV générés (non versionnés)
-docs/                 Modèle, installation, exploitation et présentation
+docs/                 Modèle, schéma, installation, comparaison, critique
 ```
 
 ## Démarrage rapide (Windows PowerShell)
@@ -54,11 +54,14 @@ docker compose exec -T trino trino --server http://localhost:8080 --file /projec
 docker compose exec -T trino trino --server http://localhost:8080 --catalog hive --schema sales --file /project/trino/analysis.sql
 ```
 
+Le schéma en étoile est dessiné dans [docs/SCHEMA.md](docs/SCHEMA.md).
 Les étapes, les commandes de comparaison et les limites connues sont détaillées
 dans [docs/INSTALLATION.md](docs/INSTALLATION.md) et
 [docs/MODELE_ET_KPI.md](docs/MODELE_ET_KPI.md).
 Les validations réellement lancées sont consignées dans
-[docs/VALIDATION.md](docs/VALIDATION.md).
+[docs/VALIDATION.md](docs/VALIDATION.md). La comparaison des moteurs et
+l'analyse critique sont dans [docs/COMPARAISON.md](docs/COMPARAISON.md) et
+[docs/ANALYSE_CRITIQUE.md](docs/ANALYSE_CRITIQUE.md).
 
 ## Principes de calcul
 
